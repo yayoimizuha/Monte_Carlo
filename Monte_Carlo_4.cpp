@@ -10,7 +10,7 @@
 using namespace std;
 
 size_t SIZE = 2;
-constexpr size_t DIMENSION = 2;
+constexpr size_t DIMENSION = 3;
 #define GNUPLOT_PATH "C:\\Progra~1\\gnuplot\\bin\\gnuplot.exe -persist"
 
 random_device seed_gen;
@@ -42,12 +42,12 @@ int main() {
         vector<size_t> count(omp_get_max_threads(), 0);
 #pragma omp parallel for
         for (size_t j = 0; j < SIZE; ++j) {
-            if (check({distribution(engine), distribution(engine)})) {
+            if (check({distribution(engine), distribution(engine), distribution(engine)})) {
                 count[omp_get_thread_num()]++;
             }
         }
         double ans =
-                static_cast<double>(accumulate(count.begin(), count.end(), static_cast<size_t>(0)) * 4)
+                static_cast<double>(accumulate(count.begin(), count.end(), static_cast<size_t>(0)) * 6)
                 / static_cast<double>(SIZE);
         cout << fixed << SIZE << ' ' << setprecision(10) << ans << endl;
         //for (size_t x: count)cout << x << endl;
@@ -60,7 +60,7 @@ int main() {
 }
 
 bool check(array<double, DIMENSION> arg) {
-    if (pow(arg[0], 2) + pow(arg[1], 2) <= 1) {
+    if (pow(arg[0], 2) + pow(arg[1], 2) + pow(arg[2], 2) < 1) {
         return true;
     } else return false;
 }
