@@ -24,26 +24,16 @@ bool check(FuncPtr funcPtr, array<double, DIMENSION> arg);
 
 int main() {
 
-    FILE *gnuplot;
-    if ((gnuplot = _popen(GNUPLOT_PATH, "w")) == nullptr) {
-        cerr << "Can't execute gnuplot. " << GNUPLOT_PATH << endl;
-        return EXIT_FAILURE;
-    }
-    fprintf(gnuplot, "set terminal windows color\n");
-    fprintf(gnuplot, "set grid\n");
-    fprintf(gnuplot, "set size ratio -1\n");
-    //fprintf(gnuplot, "set size square\n");
-    fprintf(gnuplot, "plot '-' using 1:2 w p title 'true','-' using 1:2 w p title 'false'\n\n");
-
-    constexpr size_t log_size = 28;
+    constexpr size_t log_size = 30;
 
     double x_min, x_max, y_min, y_max;
     cout << "Please input x_min & x_max:" << endl;
     cin >> x_min >> x_max;
 
-    y_min = y_max = func(x_min);
+    y_min = y_max = 0;
     for (auto i = static_cast<int>(x_min * 1e+4); i <= x_max * 1e+4; ++i) {
         auto y = func(i / 1e+4);
+        if (isnan(y))continue;
         if (y > y_max)y_max = y;
         if (y < y_min)y_min = y;
     }
@@ -93,23 +83,38 @@ int main() {
     cout << fixed << setprecision(10) << ans << endl;
 
 
+    FILE *gnuplot;
+    if ((gnuplot = _popen(GNUPLOT_PATH, "w")) == nullptr) {
+        cerr << "Can't execute gnuplot. " << GNUPLOT_PATH << endl;
+        return EXIT_FAILURE;
+    }
+    fprintf(gnuplot, "set terminal windows color\n");
+    fprintf(gnuplot, "set grid\n");
+    //fprintf(gnuplot, "set size ratio -1\n");
+    //fprintf(gnuplot, "set size square\n");
+    fprintf(gnuplot, "plot '-' using 1:2 w p title 'true','-' using 1:2 w p title 'false'\n\n");
+
     fprintf(gnuplot, "%s", true_str.c_str());
     fprintf(gnuplot, "e\n");
+    string().swap(true_str);
 
     fprintf(gnuplot, "%s", false_str.c_str());
     fprintf(gnuplot, "e\n");
+    string().swap(false_str);
 
     pclose(gnuplot);
 }
 
 bool check(FuncPtr funcPtr, array<double, DIMENSION> arg) {
-    if (funcPtr(arg[0]) > arg[1]) {
+    auto funcAns = funcPtr(arg[0]);
+    if (isnan(funcAns))return false;
+    if ((0 < arg[1]) == (arg[1] < funcAns)) {
         return true;
     } else return false;
 }
 
 double func(double x) {
-    return sqrt(x + 1);
+    return sqrt(x) * sin(x);
 }
 
 #pragma clang diagnostic pop
